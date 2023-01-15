@@ -44,7 +44,7 @@ def make_csv():
 def Capture_Event(event, x, y, flags, params):
     # If the left mouse button is pressed
     if event == cv2.EVENT_LBUTTONDOWN:
-        # clicked point of coordinate
+        # clicked point of coordinates
         print(f"({x}, {y})")
 
 
