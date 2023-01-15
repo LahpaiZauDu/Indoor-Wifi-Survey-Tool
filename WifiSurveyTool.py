@@ -22,7 +22,7 @@ access_point_lists = [
     [sg.Text("Select accesspoint")],
     [sg.Radio('e4:26:86:e0:fc:37', 'Group 1', k='-R1', font=15)],
     [sg.Radio('e4:26:86:e0:40:a7', 'Group 1', k='-R2', font=15)],
-    [sg.Radio('e4:26:86:e0:ef:64', 'Group 1', k='-R3', font=15)],
+
 
 ]
 
