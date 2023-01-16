@@ -30,11 +30,11 @@ def get_data():
 
 
 # make csv
-def make_csv():
+def make_csv(datas):
     # field names
     fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL', 'HT', 'CC', 'SECURITY']
-    rows = get_data()
-    with open('./data/home.csv', 'w') as f:
+    rows = datas
+    with open('./Data/Access_points.csv', 'w') as f:
         # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerow(fields)

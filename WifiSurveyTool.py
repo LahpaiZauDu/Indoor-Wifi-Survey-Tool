@@ -46,7 +46,7 @@ tab1_layout = [[sg.Table(values=data, headings=headings, max_col_width=50,
                          enable_click_events=True,
                          )],
                [sg.Button('Scan'),
-                sg.Button('Delete'), sg.Button('Exit')]
+                sg.Button('Delete'), sg.Button('CSV'), sg.Button('Exit')]
                ]
 
 Second_layout = [
@@ -102,6 +102,9 @@ while True:
     elif event == 'Scan':
         new_data = f.get_data()
         window['-TABLE-'].update(values=new_data)
+
+    elif event == 'CSV':
+        f.make_csv(new_data)
 
     elif event == 'Delete':
         if values['-TABLE-'] == []:
