@@ -97,12 +97,6 @@ while True:
     if event == sg.WIN_CLOSED or event == 'Exit':
         break
 
-    # print selected row value from ['-Table-']
-    # elif event == '-TABLE-':
-    #     data_selected_row = [data[row] for row in values[event]]
-    #     print(data_selected_row[0])
-    #     f.make_csv()
-
     elif event == 'Scan':
         new_data = f.get_data()
         window['-TABLE-'].update(values=new_data)
