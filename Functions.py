@@ -4,7 +4,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
-import pykrige.kriging_tools as kt
 from pykrige.ok import OrdinaryKriging
 import pandas as pd
 

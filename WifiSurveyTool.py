@@ -3,10 +3,7 @@ import PySimpleGUI as sg
 import Functions as f
 import matplotlib.pyplot as plt
 from mpl_point_clicker import clicker
-import numpy as np
 import matplotlib.pyplot as plt
-import pykrige.kriging_tools as kt
-from pykrige.ok import OrdinaryKriging
 
 # Table field names
 fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL', 'HT', 'CC', 'SECURITY']
@@ -76,9 +73,6 @@ Second_layout = [
     )]
 
 ]
-
-
-# tab2_layout = [[sg.Frame('', Second_layout)]]
 
 
 tab2_layout = [
