@@ -155,8 +155,8 @@ while True:
         fig.set_size_inches(404 * 2 / float(DPI), 404 / float(DPI))
 
         # make axis labels smaller
-        plt.gca().set_xlabel(' ', fontsize=10)
-        plt.gca().set_ylabel(' ', fontsize=10)
+        plt.gca().set_xlabel(' ', fontsize=7)
+        plt.gca().set_ylabel(' ', fontsize=7)
         plt.gca().tick_params(axis='both', which='major', labelsize=8)
 
         f.draw_figure_w_toolbar(
