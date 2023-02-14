@@ -137,7 +137,7 @@ while True:
 
     elif event == 'HeatMap':
         fig = plt.figure()
-        max_bssid_value, xcoordinates, ycoordinates, rssi = f.process_data(
+        all_max_bssid_value, max_bssid_value, xcoordinates, ycoordinates, rssi = f.process_data(
             'Data/newdata.csv')
         xco = xcoordinates
         yco = ycoordinates
