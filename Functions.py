@@ -125,7 +125,7 @@ def plot_porosity_estimate(xco, yco, rv):
                      origin='lower', cmap=cmap)
     plt.scatter(x, y, c='k', marker='o')
     cbar = plt.colorbar(cax)
-    plt.title('Porosity estimate')
+    plt.title('Heat Map')
     return plt
 
 
