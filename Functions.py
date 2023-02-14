@@ -147,15 +147,16 @@ def process_data(csv_file):
 
     # To check how many BSSID values have the maximum count in the pivot table and select their BSSID values
     max_count = df_pivot.max()
-    max_bssid = df_pivot[df_pivot == max_count].index.tolist()
+    # max_bssid = df_pivot[df_pivot == max_count].index.tolist()
+
+    max_bssid = df_pivot[df_pivot == max_count].index[0]
 
     # To drop rows from the original DataFrame df if the count of BSSID values in the pivot table is not the maximum count
-    df2 = df[df['BSSID'].isin(max_bssid)]
+    # df2 = df[df['BSSID'].isin(max_bssid)]
+    df2 = df[df['BSSID'] == max_bssid]
 
     xcoordinates = df2['Xcoordinate'].to_numpy()
     ycoordinates = df2['Ycoordinate'].to_numpy()
     rssi = df2['RSSI'].to_numpy()
-
-    df2.to_csv('2location.csv', index=False)
 
     return max_bssid, xcoordinates, ycoordinates, rssi
