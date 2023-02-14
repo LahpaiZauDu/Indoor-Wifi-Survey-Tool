@@ -129,30 +129,19 @@ while True:
         ax = fig.add_subplot()
         ax.imshow(pic)
         ax.tick_params(labelsize="xx-small")
-        klicker = clicker(ax, [legend],
-                          markers=['o'], colors="red")
+        klicker = clicker(ax, [legend], markers=['o'], colors="red")
         fig = plt.gcf()
         DPI = fig.get_dpi()
         fig.set_size_inches(404 * 2 / float(DPI), 404 / float(DPI))
+
+        # invert y-axis to start from the bottom
+        ax.invert_yaxis()
+
         klicker.on_class_changed(f.class_changed_cb)
         klicker.on_point_added(f.point_added_cb)
         klicker.on_point_removed(f.point_removed_cb)
-
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
-
-    # elif event == 'HeatMap':
-    #     fig = plt.figure()
-    #     all_max_bssid_value, max_bssid_value, xcoordinates, ycoordinates, rssi = f.process_data(
-    #         'Data/newdata.csv')
-    #     xco = xcoordinates
-    #     yco = ycoordinates
-    #     rv = rssi
-    #     plt = f.plot_porosity_estimate(xco, yco, rv)
-    #     fig = plt.gcf()
-    #     fig.set_size_inches(404 * 2 / float(DPI), 404 / float(DPI))
-    #     f.draw_figure_w_toolbar(
-    #         window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
     elif event == 'HeatMap':
         fig = plt.figure()
