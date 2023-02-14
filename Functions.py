@@ -159,3 +159,8 @@ def process_data(csv_file):
     rssi = df2['RSSI'].to_numpy()
 
     return all_max_bssid, max_bssid, xcoordinates, ycoordinates, rssi
+
+
+def get_all_max_bssid(csv_file):
+    all_max_bssid, _, _, _, _ = process_data(csv_file)
+    return all_max_bssid

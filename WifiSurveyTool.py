@@ -22,13 +22,19 @@ headings = fields
 
 legend = " "
 
-access_point_lists = [
-    [sg.Text("Select accesspoint")],
-    [sg.Radio('e4:26:86:e0:fc:37', 'Group 1', k='-R1', font=15)],
-    [sg.Radio('e4:26:86:e0:40:a7', 'Group 1', k='-R2', font=15)],
+# List of values to use for radio buttons
+values = f.get_all_max_bssid('Data/newdata.csv')
+
+# Create a list of radio buttons with a variable assigned to each one
+radio_buttons = [sg.Radio(
+    value, 'Group 1', k=f'-R{i}', font=15) for i, value in enumerate(values)]
 
 
-]
+access_point_lists = [[sg.Text("Select accesspoint", font=15)],
+                      [sg.Column([[button] for button in radio_buttons],
+                                 element_justification='l')]
+                      ]
+
 
 # ------ Window Layout c------
 tab1_layout = [[sg.Table(values=data, headings=headings, max_col_width=50,
