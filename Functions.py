@@ -3,6 +3,10 @@ import csv
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from typing import Tuple
 import numpy as np
+import matplotlib.pyplot as plt
+import pykrige.kriging_tools as kt
+from pykrige.ok import OrdinaryKriging
+import pandas as pd
 
 
 class Toolbar(NavigationToolbar2Tk):
@@ -76,7 +80,7 @@ def point_added_cb(position: Tuple[float, float], klass: str):
     fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL',
               'HT', 'CC', 'SECURITY', 'Xcoordinate', 'Ycoordinate']
     rows = scan_out_data
-    with open('./Data/simple.csv', 'a') as f:
+    with open('./Data/2newdata.csv', 'a') as f:
         # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerow(fields)
@@ -90,3 +94,68 @@ def point_removed_cb(position: Tuple[float, float], klass: str, idx):
     print(
         f"The {idx}{suffix} point of class {klass} with position {x=:.2f}, {y=:.2f}  was removed"
     )
+
+
+def plot_porosity_estimate(xco, yco, rv):
+    xx = [int(float(x)) for x in xco]
+    yy = [int(float(x)) for x in yco]
+    rs = [int(float(x)) for x in rv]
+
+    x = np.array(xx)
+    y = np.array(yy)
+    phi = np.array(rs)
+
+    OK = OrdinaryKriging(
+        x,
+        y,
+        phi,
+        verbose=True,
+        enable_plotting=False,
+        nlags=14,
+    )
+
+    OK.variogram_model_parameters
+
+    gridx = np.arange(0, 1000, 40, dtype='float64')
+    gridy = np.arange(0, 600, 40, dtype='float64')
+    zstar, ss = OK.execute("grid", gridx, gridy)
+
+    cmap = plt.cm.get_cmap('RdYlGn', 256)
+    cax = plt.imshow(zstar, extent=(0, 1000, 0, 600),
+                     origin='lower', cmap=cmap)
+    plt.scatter(x, y, c='k', marker='o')
+    cbar = plt.colorbar(cax)
+    plt.title('Porosity estimate')
+    return plt
+
+
+def process_data(csv_file):
+    df = pd.read_csv(csv_file)
+    channel_values = ['1', '11', '36']
+    df_sv = df[df.CHANNEL.isin(channel_values)]
+    five_column = df_sv[['SSID', 'BSSID', 'RSSI',
+                         'CHANNEL', 'Xcoordinate', 'Ycoordinate']]
+    df = five_column
+
+    # sort RSSI value in original dataframe
+    df = df.sort_values(['RSSI'], ascending=True)
+
+    # To list the count of BSSID values in the pivot table from minimum to maximum
+    df_pivot = df.pivot_table(index=['BSSID'], aggfunc='size')
+    df_pivot_sorted = df_pivot.sort_values(
+        ascending=True).reset_index(drop=True)
+
+    # To check how many BSSID values have the maximum count in the pivot table and select their BSSID values
+    max_count = df_pivot.max()
+    max_bssid = df_pivot[df_pivot == max_count].index.tolist()
+
+    # To drop rows from the original DataFrame df if the count of BSSID values in the pivot table is not the maximum count
+    df2 = df[df['BSSID'].isin(max_bssid)]
+
+    xcoordinates = df2['Xcoordinate'].to_numpy()
+    ycoordinates = df2['Ycoordinate'].to_numpy()
+    rssi = df2['RSSI'].to_numpy()
+
+    df2.to_csv('2location.csv', index=False)
+
+    return max_bssid, xcoordinates, ycoordinates, rssi

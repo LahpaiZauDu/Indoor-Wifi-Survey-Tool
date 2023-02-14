@@ -3,6 +3,10 @@ import PySimpleGUI as sg
 import Functions as f
 import matplotlib.pyplot as plt
 from mpl_point_clicker import clicker
+import numpy as np
+import matplotlib.pyplot as plt
+import pykrige.kriging_tools as kt
+from pykrige.ok import OrdinaryKriging
 
 # Table field names
 fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL', 'HT', 'CC', 'SECURITY']
@@ -52,7 +56,7 @@ tab1_layout = [[sg.Table(values=data, headings=headings, max_col_width=50,
 Second_layout = [
     [sg.T('Import new Project')],
     [sg.Input(
-        size=(1, 1), key="-FILE-", visible=False), sg.FileBrowse(file_types=file_types), sg.B('Import'), sg.Canvas(key='controls_cv',)],
+        size=(1, 1), key="-FILE-", visible=False), sg.FileBrowse(file_types=file_types), sg.B('Import'), sg.B('HeatMap'), sg.Canvas(key='controls_cv',)],
     [sg.T('Figure:', visible=False)],
     [sg.Column(
         layout=[
@@ -128,6 +132,19 @@ while True:
         klicker.on_point_added(f.point_added_cb)
         klicker.on_point_removed(f.point_removed_cb)
 
+        f.draw_figure_w_toolbar(
+            window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
+
+    elif event == 'HeatMap':
+        fig = plt.figure()
+        max_bssid_value, xcoordinates, ycoordinates, rssi = f.process_data(
+            'Data/newdata.csv')
+        xco = xcoordinates
+        yco = ycoordinates
+        rv = rssi
+        plt = f.plot_porosity_estimate(xco, yco, rv)
+        fig = plt.gcf()
+        fig.set_size_inches(404 * 2 / float(DPI), 404 / float(DPI))
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
