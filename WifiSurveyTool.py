@@ -141,6 +141,19 @@ while True:
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
+    # elif event == 'HeatMap':
+    #     fig = plt.figure()
+    #     all_max_bssid_value, max_bssid_value, xcoordinates, ycoordinates, rssi = f.process_data(
+    #         'Data/newdata.csv')
+    #     xco = xcoordinates
+    #     yco = ycoordinates
+    #     rv = rssi
+    #     plt = f.plot_porosity_estimate(xco, yco, rv)
+    #     fig = plt.gcf()
+    #     fig.set_size_inches(404 * 2 / float(DPI), 404 / float(DPI))
+    #     f.draw_figure_w_toolbar(
+    #         window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
+
     elif event == 'HeatMap':
         fig = plt.figure()
         all_max_bssid_value, max_bssid_value, xcoordinates, ycoordinates, rssi = f.process_data(
@@ -151,6 +164,12 @@ while True:
         plt = f.plot_porosity_estimate(xco, yco, rv)
         fig = plt.gcf()
         fig.set_size_inches(404 * 2 / float(DPI), 404 / float(DPI))
+
+        # make axis labels smaller
+        plt.gca().set_xlabel(' ', fontsize=10)
+        plt.gca().set_ylabel(' ', fontsize=10)
+        plt.gca().tick_params(axis='both', which='major', labelsize=8)
+
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
