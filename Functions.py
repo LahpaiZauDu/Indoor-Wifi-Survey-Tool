@@ -79,7 +79,7 @@ def point_added_cb(position: Tuple[float, float], klass: str):
     fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL',
               'HT', 'CC', 'SECURITY', 'Xcoordinate', 'Ycoordinate']
     rows = scan_out_data
-    with open('./Data/2newdata.csv', 'a') as f:
+    with open('./Data/floor2.csv', 'a') as f:
         # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerow(fields)
@@ -95,7 +95,7 @@ def point_removed_cb(position: Tuple[float, float], klass: str, idx):
     )
 
 
-def plot_porosity_estimate(xco, yco, rv):
+def plot_porosity_estimate(xco, yco, rv, image_size):
     xx = [int(float(x)) for x in xco]
     yy = [int(float(x)) for x in yco]
     rs = [int(float(x)) for x in rv]
@@ -115,17 +115,17 @@ def plot_porosity_estimate(xco, yco, rv):
 
     OK.variogram_model_parameters
 
-    gridx = np.arange(0, 1000, 40, dtype='float64')
-    gridy = np.arange(0, 600, 40, dtype='float64')
+    # Calculate grid points based on image size
+    x_min, y_min, x_max, y_max = 0, 0, image_size[0], image_size[1]
+    x_range = x_max - x_min
+    y_range = y_max - y_min
+    x_step = int(x_range / 25)
+    y_step = int(y_range / 25)
+    gridx = np.arange(x_min, x_max + x_step, x_step, dtype='float64')
+    gridy = np.arange(y_min, y_max + y_step, y_step, dtype='float64')
     zstar, ss = OK.execute("grid", gridx, gridy)
 
-    cmap = plt.cm.get_cmap('RdYlGn', 256)
-    cax = plt.imshow(zstar, extent=(0, 1000, 0, 600),
-                     origin='lower', cmap=cmap)
-    plt.scatter(x, y, c='k', marker='o')
-    cbar = plt.colorbar(cax)
-    plt.title('Heat Map')
-    return plt
+    return zstar
 
 
 def process_data(csv_file):

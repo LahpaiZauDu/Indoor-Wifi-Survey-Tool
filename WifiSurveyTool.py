@@ -3,7 +3,9 @@ import PySimpleGUI as sg
 import Functions as f
 import matplotlib.pyplot as plt
 from mpl_point_clicker import clicker
-import matplotlib.pyplot as plt
+import cv2
+import numpy as np
+
 
 # Table field names
 fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL', 'HT', 'CC', 'SECURITY']
@@ -57,7 +59,7 @@ tab1_layout = [[sg.Table(values=data, headings=headings, max_col_width=50,
                ]
 
 Second_layout = [
-    [sg.T('Import new Project')],
+    # [sg.T('Import new Project', justification='center')],
     [sg.Input(
         size=(1, 1), key="-FILE-", visible=False), sg.FileBrowse(file_types=file_types), sg.B('Import'), sg.B('HeatMap'), sg.Canvas(key='controls_cv',)],
     [sg.T('Figure:', visible=False)],
@@ -65,18 +67,16 @@ Second_layout = [
         layout=[
             [sg.Canvas(key='fig_cv',
                        # it's important that you set this size
-                       size=(500 * 2, 400)
+                       size=(600 * 2, 400)
                        )]
         ],
-        background_color='#DAE0E6',
         pad=(0, 0)
     )]
-
 ]
 
 
 tab2_layout = [
-    [sg.Column(Second_layout),
+    [sg.Column(Second_layout, expand_x=True, element_justification='center'),
      sg.VSeperator(),
      sg.Column(access_point_lists)]
 ]
@@ -93,6 +93,9 @@ window = sg.Window('Indoor Wifi Survey Tool', layout,
 
 while True:
     event, values = window.read()
+
+    fig = None
+    ax = None
 
     if event == sg.WIN_CLOSED or event == 'Exit':
         break
@@ -113,39 +116,55 @@ while True:
 
     elif event == 'Import':
         pic = plt.imread(values["-FILE-"])
-        fig = plt.figure()
+        pic = cv2.cvtColor(pic, cv2.COLOR_BGR2RGB)
+        fig = plt.figure(frameon=False)
         ax = fig.add_subplot()
         ax.imshow(pic)
         ax.tick_params(labelsize="xx-small")
+        ax.axis('off')
         klicker = clicker(ax, [legend], markers=['o'], colors="red")
-        fig = plt.gcf()
         DPI = fig.get_dpi()
-        fig.set_size_inches(404 * 2 / float(DPI), 404 / float(DPI))
-
-        # invert y-axis to start from the bottom
-        ax.invert_yaxis()
-
+        fig.set_size_inches(500 * 2 / float(DPI), 404 / float(DPI))
         klicker.on_class_changed(f.class_changed_cb)
         klicker.on_point_added(f.point_added_cb)
         klicker.on_point_removed(f.point_removed_cb)
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
+        # Get the size of the imported image and store it in a variable called 'import_size'
+        import_size = pic.shape[:2]
+
     elif event == 'HeatMap':
-        fig = plt.figure()
         all_max_bssid_value, max_bssid_value, xcoordinates, ycoordinates, rssi = f.process_data(
             'Data/newdata.csv')
         xco = xcoordinates
         yco = ycoordinates
         rv = rssi
-        plt = f.plot_porosity_estimate(xco, yco, rv)
-        fig = plt.gcf()
-        fig.set_size_inches(404 * 2 / float(DPI), 404 / float(DPI))
 
-        # make axis labels smaller
-        plt.gca().set_xlabel(' ', fontsize=7)
-        plt.gca().set_ylabel(' ', fontsize=7)
-        plt.gca().tick_params(axis='both', which='major', labelsize=8)
+        # Call plot_porosity_estimate and get the heat map data, pass 'import_size' instead of 'image_size'
+        zstar = f.plot_porosity_estimate(xco, yco, rv, import_size)
+
+        # Overlay the heat map on top of the imported image, set the extent of the overlay image to match the extent of the imported image
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        ax.imshow(pic)
+        ax.imshow(zstar, alpha=0.9, cmap='RdYlGn', interpolation='bilinear',
+                  extent=[0, import_size[1], import_size[0], 0])
+        ax.tick_params(labelsize="xx-small")
+        klicker = clicker(ax, [legend], markers=['o'], colors="red")
+        DPI = fig.get_dpi()
+        fig.set_size_inches(500 * 2 / float(DPI), 404 / float(DPI))
+        klicker.on_class_changed(f.class_changed_cb)
+        klicker.on_point_added(f.point_added_cb)
+        klicker.on_point_removed(f.point_removed_cb)
+
+        # Hide the color bar
+        plt.gca().set_axis_off()
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
+                            hspace=0, wspace=0)
+        plt.margins(0, 0)
+        plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        plt.gca().yaxis.set_major_locator(plt.NullLocator())
 
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
