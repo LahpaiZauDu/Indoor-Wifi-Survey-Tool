@@ -148,15 +148,11 @@ while True:
         fig = plt.figure()
         ax = fig.add_subplot()
         ax.imshow(pic)
-        ax.imshow(zstar, alpha=0.9, cmap='RdYlGn', interpolation='bilinear',
+        ax.imshow(zstar, alpha=0.8, cmap='RdYlGn', interpolation='spline16',
                   extent=[0, import_size[1], import_size[0], 0])
         ax.tick_params(labelsize="xx-small")
-        klicker = clicker(ax, [legend], markers=['o'], colors="red")
         DPI = fig.get_dpi()
         fig.set_size_inches(500 * 2 / float(DPI), 404 / float(DPI))
-        klicker.on_class_changed(f.class_changed_cb)
-        klicker.on_point_added(f.point_added_cb)
-        klicker.on_point_removed(f.point_removed_cb)
 
         # Hide the color bar
         plt.gca().set_axis_off()
