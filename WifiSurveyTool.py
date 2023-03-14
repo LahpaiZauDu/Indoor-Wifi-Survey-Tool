@@ -4,8 +4,7 @@ import Functions as f
 import matplotlib.pyplot as plt
 from mpl_point_clicker import clicker
 import cv2
-import numpy as np
-
+import matplotlib.colors as mcolors
 
 # Table field names
 fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL', 'HT', 'CC', 'SECURITY']
@@ -144,11 +143,16 @@ while True:
         # Call plot_porosity_estimate and get the heat map data, pass 'import_size' instead of 'image_size'
         zstar = f.plot_porosity_estimate(xco, yco, rv, import_size)
 
+        red = mcolors.colorConverter.to_rgb('#FF0000')
+        green = mcolors.colorConverter.to_rgb('#00FF00')
+        cmap = mcolors.LinearSegmentedColormap.from_list(
+            'mycmap', [red, green], N=10)
+
         # Overlay the heat map on top of the imported image, set the extent of the overlay image to match the extent of the imported image
         fig = plt.figure()
         ax = fig.add_subplot()
         ax.imshow(pic)
-        ax.imshow(zstar, alpha=0.8, cmap='RdYlGn', interpolation='spline16',
+        ax.imshow(zstar, alpha=0.8, cmap=cmap, interpolation='bicubic',
                   extent=[0, import_size[1], import_size[0], 0])
         ax.tick_params(labelsize="xx-small")
         DPI = fig.get_dpi()
@@ -164,6 +168,5 @@ while True:
 
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
-
 
 window.close()
