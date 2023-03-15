@@ -31,6 +31,9 @@ values = f.get_all_max_bssid('Data/newdata.csv')
 radio_buttons = [sg.Radio(
     value, 'Group 1', k=f'-R{i}', font=15) for i, value in enumerate(values)]
 
+# Create the window and set its size to the screen resolution
+screen_resolution = sg.Window.get_screen_size()
+
 
 access_point_lists = [[sg.Text("Select accesspoint", font=15)],
                       [sg.Column([[button] for button in radio_buttons],
@@ -41,10 +44,10 @@ access_point_lists = [[sg.Text("Select accesspoint", font=15)],
 # ------ Window Layout c------
 tab1_layout = [[sg.Table(values=data, headings=headings, max_col_width=50,
                          auto_size_columns=False,
-                         def_col_width=15,
+                         def_col_width=20,
                          display_row_numbers=False,
                          justification='left',
-                         num_rows=20,
+                         num_rows=35,
                          key='-TABLE-',
                          font='Courier 18',
                          selected_row_colors='black on lightgray',
@@ -70,7 +73,7 @@ Second_layout = [
         layout=[
             [sg.Canvas(key='fig_cv',
                        # it's important that you set this size
-                       size=(600 * 2, 400)
+                       size=(600 * 2, 900)
                        )]
         ],
         pad=(0, 0)
@@ -80,7 +83,7 @@ Second_layout = [
 
 tab2_layout = [
     [sg.Column(Second_layout, expand_x=True, element_justification='center'),
-     sg.VSeperator(),
+     #  sg.VSeperator(),
      sg.Column(access_point_lists)]
 ]
 
@@ -91,7 +94,7 @@ layout = [[sg.TabGroup([[sg.Tab('Discover', tab1_layout, key='-mykey-'),
 
 
 window = sg.Window('Indoor Wifi Survey Tool', layout,
-                   size=(1214, 468), finalize=True)
+                   size=screen_resolution, resizable=False, finalize=True)
 
 
 while True:
@@ -127,7 +130,7 @@ while True:
         ax.axis('off')
         klicker = clicker(ax, [legend], markers=['o'], colors="red")
         DPI = fig.get_dpi()
-        fig.set_size_inches(500 * 2 / float(DPI), 404 / float(DPI))
+        fig.set_size_inches(500 * 2 / float(DPI), 800 / float(DPI))
         klicker.on_class_changed(f.class_changed_cb)
         klicker.on_point_added(f.point_added_cb)
         klicker.on_point_removed(f.point_removed_cb)
@@ -162,7 +165,7 @@ while True:
 
         ax.axis('off')  # remove axis border
         DPI = fig.get_dpi()
-        fig.set_size_inches(500 * 2 / float(DPI), 404 / float(DPI))
+        fig.set_size_inches(500 * 2 / float(DPI), 700 / float(DPI))
 
         cbar = plt.colorbar(heatmap, orientation='vertical',
                             shrink=0.5, pad=0.05, aspect=10)

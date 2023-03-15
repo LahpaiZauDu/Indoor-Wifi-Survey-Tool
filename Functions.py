@@ -79,7 +79,7 @@ def point_added_cb(position: Tuple[float, float], klass: str):
     fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL',
               'HT', 'CC', 'SECURITY', 'Xcoordinate', 'Ycoordinate']
     rows = scan_out_data
-    with open('./Data/floor2.csv', 'a') as f:
+    with open('./Data/floor5.csv', 'a') as f:
         # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerow(fields)
