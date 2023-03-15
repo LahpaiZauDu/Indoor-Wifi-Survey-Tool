@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 from mpl_point_clicker import clicker
 import cv2
 import matplotlib.colors as mcolors
+from matplotlib.colors import LinearSegmentedColormap
+import seaborn as sns
+import numpy as np
+
 
 # Table field names
 fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL', 'HT', 'CC', 'SECURITY']
@@ -152,21 +156,22 @@ while True:
         fig = plt.figure()
         ax = fig.add_subplot()
         ax.imshow(pic)
-        ax.imshow(zstar, alpha=0.8, cmap=cmap, interpolation='bicubic',
-                  extent=[0, import_size[1], import_size[0], 0])
-        ax.tick_params(labelsize="xx-small")
+        vmin, vmax = -90, -50
+        heatmap = ax.imshow(zstar, alpha=0.8, cmap=cmap, interpolation='lanczos',
+                            extent=[0, import_size[1], import_size[0], 0])
+
+        ax.axis('off')  # remove axis border
         DPI = fig.get_dpi()
         fig.set_size_inches(500 * 2 / float(DPI), 404 / float(DPI))
 
-        # Hide the color bar
-        plt.gca().set_axis_off()
-        plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
-                            hspace=0, wspace=0)
-        plt.margins(0, 0)
-        plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        plt.gca().yaxis.set_major_locator(plt.NullLocator())
-
+        cbar = plt.colorbar(heatmap, orientation='vertical',
+                            shrink=0.5, pad=0.05, aspect=10)
+        cbar.ax.tick_params(labelsize="xx-small")
+        cbar.ax.set_ylabel('RSSI', rotation=270, labelpad=15, fontsize='small')
+        ax.set_xlabel('')
+        ax.set_ylabel('')
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
+
 
 window.close()
