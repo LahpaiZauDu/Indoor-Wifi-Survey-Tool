@@ -165,7 +165,7 @@ while True:
 
         ax.axis('off')  # remove axis border
         DPI = fig.get_dpi()
-        fig.set_size_inches(500 * 2 / float(DPI), 700 / float(DPI))
+        fig.set_size_inches(500 * 2 / float(DPI), 800 / float(DPI))
 
         cbar = plt.colorbar(heatmap, orientation='vertical',
                             shrink=0.5, pad=0.05, aspect=10)
