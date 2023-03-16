@@ -95,15 +95,11 @@ def point_removed_cb(position: Tuple[float, float], klass: str, idx):
     )
 
 
-def plot_porosity_estimate(xco, yco, rv, image_size):
-    xx = [int(float(x)) for x in xco]
-    yy = [int(float(x)) for x in yco]
-    rs = [int(float(x)) for x in rv]
+def plot_porosity_estimate(xco, yco, rss, image_size):
 
-    x = np.array(xx)
-    y = np.array(yy)
-    phi = np.array(rs)
-
+    x = xco
+    y = yco
+    phi = rss
     OK = OrdinaryKriging(
         x,
         y,
@@ -163,3 +159,48 @@ def process_data(csv_file):
 def get_all_max_bssid(csv_file):
     all_max_bssid, _, _, _, _ = process_data(csv_file)
     return all_max_bssid
+
+
+def all_average(csv_file):
+
+    # Load data from CSV
+    df = pd.read_csv(csv_file)
+
+    # Group data by X and Y coordinates, and apply the 'list' function to the RSSI column
+    df_grouped = df.groupby(['Xcoordinate', 'Ycoordinate'])[
+        'RSSI'].apply(list).reset_index()
+
+    # Replace -100 and NaN with None
+    df_grouped['RSSI'] = df_grouped['RSSI'].apply(
+        lambda x: [i if i != -100 and not pd.isna(i) else None for i in x])
+
+    # Convert RSSI lists into separate columns using the 'apply' function
+    df_expanded = df_grouped['RSSI'].apply(pd.Series)
+
+    # Combine the expanded DataFrame with the original X and Y coordinates
+    df_combined = pd.concat(
+        [df_grouped[['Xcoordinate', 'Ycoordinate']], df_expanded], axis=1)
+
+    # Replace empty or non-native values with -100 using the 'fillna' function
+    df_combined.fillna(value=-100, inplace=True)
+    df_combined[df_combined == 'CHANNEL'] = -100
+    # drop the last row
+    df_combined = df_combined.drop(df_combined.index[-1])
+
+    # Write the updated data to a new CSV file
+    df_combined.to_csv('Data/floor5new.csv', index=False)
+
+    # Load the updated data from the CSV file
+    newdata = pd.read_csv('Data/floor5new.csv')
+
+    # Calculate the average RSSI for each row
+    newdata['RSSI'] = newdata.iloc[:, 2:].astype(float).mean(axis=1)
+
+    # Select only the 'Xcoordinate', 'Ycoordinate', and 'RSSI' columns
+    newaverage = newdata[['Xcoordinate', 'Ycoordinate', 'RSSI']]
+
+    xcoordinates = np.array(newaverage['Xcoordinate'])
+    ycoordinates = np.array(newaverage['Ycoordinate'])
+    rssi = np.array(newaverage['RSSI'])
+
+    return xcoordinates, ycoordinates, rssi

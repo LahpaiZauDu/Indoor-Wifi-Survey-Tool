@@ -84,7 +84,8 @@ Second_layout = [
 tab2_layout = [
     [sg.Column(Second_layout, expand_x=True, element_justification='center'),
      #  sg.VSeperator(),
-     sg.Column(access_point_lists)]
+     #  sg.Column(access_point_lists)]
+     ]
 ]
 
 
@@ -141,15 +142,13 @@ while True:
         import_size = pic.shape[:2]
 
     elif event == 'HeatMap':
-        all_max_bssid_value, max_bssid_value, xcoordinates, ycoordinates, rssi = f.process_data(
-            'Data/newdata.csv')
+        xcoordinates, ycoordinates, rssi = f.all_average(
+            'Data/floor5.csv')
         xco = xcoordinates
         yco = ycoordinates
         rv = rssi
-
         # Call plot_porosity_estimate and get the heat map data, pass 'import_size' instead of 'image_size'
         zstar = f.plot_porosity_estimate(xco, yco, rv, import_size)
-
         red = mcolors.colorConverter.to_rgb('#FF0000')
         green = mcolors.colorConverter.to_rgb('#00FF00')
         cmap = mcolors.LinearSegmentedColormap.from_list(
@@ -159,7 +158,10 @@ while True:
         fig = plt.figure()
         ax = fig.add_subplot()
         ax.imshow(pic)
-        vmin, vmax = -90, -50
+
+        # Add the scatter plot of the x and y coordinates here
+        cax = plt.scatter(xco, yco, s=10, c='black')
+        vmin, vmax = -100, -40
         heatmap = ax.imshow(zstar, alpha=0.8, cmap=cmap, interpolation='lanczos',
                             extent=[0, import_size[1], import_size[0], 0])
 
