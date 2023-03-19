@@ -146,11 +146,6 @@ while True:
         f.draw_figure_w_toolbar(
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
-        # f.draw_figure_w_toolbar_2(
-        #     window['fig_cv_1'].TKCanvas, fig)
-
-        # Get the size of the imported image and store it in a variable called 'import_size'
-
     elif event == 'HeatMap':
         xcoordinates, ycoordinates, rssi = f.average(
             'Data/floor5.csv')
