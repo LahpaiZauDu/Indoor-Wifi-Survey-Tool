@@ -90,7 +90,7 @@ def point_added_cb(position: Tuple[float, float], klass: str):
     fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL',
               'HT', 'CC', 'SECURITY', 'Xcoordinate', 'Ycoordinate']
     rows = scan_out_data
-    with open('./Data/floor5.csv', 'a') as f:
+    with open('./Data/20_floor5.csv', 'a') as f:
         # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerow(fields)
@@ -202,7 +202,7 @@ def all_average(csv_file):
     df_combined.to_csv('Data/floor55new.csv', index=False)
 
     # Load the updated data from the CSV file
-    newdata = pd.read_csv('Data/floor55new.csv')
+    newdata = pd.read_csv('Data/floor550new.csv')
 
     # Calculate the average RSSI for each row
     newdata['RSSI'] = newdata.iloc[:, 2:].astype(float).mean(axis=1)
@@ -246,7 +246,7 @@ def average(csv_file):
 
     # Create a new column for the overall mean RSSI for each unique combination of ['Xcoordinate', 'Ycoordinate', 'BSSID_Sumarize']
     df_grouped_all_mean['RSSI_all_mean'] = df_grouped_all_mean['RSSI_mean'].apply(
-        lambda x: np.mean(x))
+        lambda x: np.max(x))
 
     # Group by unique combination of ['Xcoordinate', 'Ycoordinate'] and list the unique RSSI_all_mean values
     df_grouped_coord_mean = df_grouped_all_mean.groupby(
@@ -269,6 +269,70 @@ def average(csv_file):
     xcoordinates = np.array(newdata['Xcoordinate'])
     ycoordinates = np.array(newdata['Ycoordinate'])
     rssi = np.array(newdata['NewMean'])
+
+    return xcoordinates, ycoordinates, rssi
+
+
+def new_average(csv_file):
+
+    # Load data from CSV
+    df = pd.read_csv(csv_file)
+
+    # remove rows with missing values
+    df_remove = df.dropna()
+
+    # Filter the dataframe to only include rows where RSSI contains '-'
+    df_Filter = df_remove[df_remove['RSSI'].str.contains('-')]
+
+    # Group data by X and Y coordinates, and apply the 'list' function to the RSSI column
+    df_grouped = df_Filter.groupby(['Xcoordinate', 'Ycoordinate', 'BSSID'])[
+        'RSSI'].apply(list).reset_index()
+
+    # Calculate the average RSSI for each row
+    df_grouped['RSSI_Max'] = df_grouped['RSSI'].apply(
+        lambda x: np.max([int(i) for i in x]))
+
+    # Create a new column for the access point MAC address by removing the last 3 octets of the BSSID
+    df_grouped['BSSID_Sumarize'] = df_grouped['BSSID'].apply(
+        lambda x: ':'.join(x.split(':')[:3]))
+
+    # Group by unique combination of ['Xcoordinate', 'Ycoordinate', 'BSSID_Sumarize'] and list the RSSI_mean values
+    df_grouped_all_max = df_grouped.groupby(['Xcoordinate', 'Ycoordinate', 'BSSID_Sumarize'])[
+        'RSSI_Max'].apply(list).reset_index()
+
+    # Create a new column for the overall mean RSSI for each unique combination of ['Xcoordinate', 'Ycoordinate', 'BSSID_Sumarize']
+    df_grouped_all_max['Max_lists'] = df_grouped_all_max['RSSI_Max'].apply(
+        lambda x: np.max(x))
+
+    # Group by unique combination of ['Xcoordinate', 'Ycoordinate'] and list the unique RSSI_all_mean values
+    df_grouped_coord_max = df_grouped_all_max.groupby(
+        ['Xcoordinate', 'Ycoordinate', 'BSSID_Sumarize'])['Max_lists'].unique().reset_index()
+
+    # Get count duplicates single column using dataframe.pivot_table()
+    df2 = df_grouped_coord_max.pivot_table(
+        index=['BSSID_Sumarize'], aggfunc='size')
+
+    max_count = df2.max()
+    max_bssid = df2[df2 == max_count].index.tolist()
+
+    df4 = df_grouped_coord_max[df_grouped_coord_max['BSSID_Sumarize'].isin(
+        max_bssid)]
+    # df4 = df_grouped_coord_max.sort_values(['BSSID_Sumarize'],ascending=True)
+
+    df5 = df4.loc[df4['BSSID_Sumarize'] == '00:b6:70']
+
+    df5.loc[:, 'Max_lists'] = df5['Max_lists'].astype(int)
+
+    df5.to_csv('Data/New_MAX.csv', index=False)
+
+    # Load the updated data from the CSV file
+    newdata = pd.read_csv('Data/New_MAX.csv')
+
+    xcoordinates = np.array(newdata['Xcoordinate'])
+    ycoordinates = np.array(newdata['Ycoordinate'])
+    rssi = np.array(newdata['Max_lists'])
+
+    print(rssi)
 
     return xcoordinates, ycoordinates, rssi
 

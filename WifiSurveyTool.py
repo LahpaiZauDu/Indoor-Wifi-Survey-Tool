@@ -147,7 +147,7 @@ while True:
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
     elif event == 'HeatMap':
-        xcoordinates, ycoordinates, rssi = f.average(
+        xcoordinates, ycoordinates, rssi = f.new_average(
             'Data/floor5.csv')
         xco = xcoordinates
         yco = ycoordinates
@@ -173,7 +173,7 @@ while True:
 
         # Add the scatter plot of the x and y coordinates here
         cax = plt.scatter(xco, yco, s=5, c='black')
-        # vmin, vmax = -80, -100
+        vmin, vmax = -40, -100
         heatmap = ax.imshow(zstar, alpha=0.8, cmap=cmap, interpolation='sinc',
                             extent=[0, import_size[1], import_size[0], 0])
 
