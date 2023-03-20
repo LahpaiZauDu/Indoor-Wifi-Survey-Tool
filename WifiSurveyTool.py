@@ -223,32 +223,35 @@ while True:
         fig, axs = plt.subplots(2, 2)
 
         # Plot the data and add the RMSE and MAE text boxes to each subplot
-        for i, (data, title) in enumerate(zip([Groundtruth, E1, E2, E3],
-                                              ['Ground Truth', 'Estimated 1', 'Estimated 2', 'Estimated 3'])):
+        for i, (estimate, title) in enumerate(zip([Groundtruth, E1, E2, E3],
+                                                  ['Ground Truth', 'Estimated 1', 'Estimated 2', 'Estimated 3'])):
+            # Calculate the root mean square error (RMSE) and mean absolute error (MAE)
+            rmse_shifted = np.sqrt(np.mean((Groundtruth - estimate)**2))
+            mae_shifted = np.mean(np.abs(Groundtruth - estimate))
+
             ax = axs[i // 2, i % 2]
             sc = ax.scatter(xcoordinates + (i % 2) * 1000 - 1000,
-                            ycoordinates + (i // 2) * 1200 - 700, c=data, cmap=cmap, s=50)
+                            ycoordinates + (i // 2) * 1200 - 700, c=estimate, cmap=cmap, s=50)
             ax.set_title(title, fontsize=10)
             ax.invert_yaxis()
             ax.text(
                 0.05, 0.95, f'RMSE: {rmse_shifted:.2f}\nMAE: {mae_shifted:.2f}', transform=ax.transAxes, va='top')
 
-        # Hide x labels and tick labels for top plots and y ticks for right plots.
-        for ax in fig.get_axes():
-            ax.label_outer()
+            # Hide x labels and tick labels for top plots and y ticks for right plots.
+            for ax in fig.get_axes():
+                ax.label_outer()
 
         # Add a colorbar to the second subplot
         cbar = fig.colorbar(sc, ax=axs)
 
         cbar.set_label('RSSI')
 
-        # Show the root mean square error (RMSE) and mean absolute error (MAE) in the plot title
-        fig.suptitle(
-            f'RMSE: {rmse_shifted:.2f}, MAE: {mae_shifted:.2f}', fontsize=12)
-
         # Display the figure
         f.draw_figure_w_toolbar(
             window['fig_cv_1'].TKCanvas, fig, window['controls_cv'].TKCanvas)
+
+        # Show the root mean square error (RMSE) and mean absolute error (MAE) in the plot title
+        fig.suptitle(f'', fontsize=12)
 
 
 window.close()
