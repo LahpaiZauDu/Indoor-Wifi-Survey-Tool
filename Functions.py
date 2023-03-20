@@ -363,6 +363,6 @@ def Validation_points(csv_file):
     df = pd.read_csv(csv_file)
     xcoordinates = np.array(df['Xcoordinate'])
     ycoordinates = np.array(df['Ycoordinate'])
-    rssi = np.array(df['NewMean'])
+    rssi = np.array(df['Max_lists'])
 
     return xcoordinates, ycoordinates, rssi

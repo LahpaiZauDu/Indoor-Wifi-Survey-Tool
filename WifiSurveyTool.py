@@ -191,43 +191,57 @@ while True:
 
     elif event == 'Validate':
         xcoordinates, ycoordinates, rssi = f.Validation_points(
-            'Data/18_floor5.csv')
+            'Data/New_MAX.csv')
         gt_x = xcoordinates
         gt_y = ycoordinates
         gt_phi = rssi
 
-        # Call plot_porosity_estimate and get the heat map data, pass 'import_size' instead of 'image_size'
-        zstar = f.Validation(gt_x, gt_y, gt_phi, xcoordinates, ycoordinates)
+        # Call plot_porosity_estimate and get the heat map data,
+        Groundtruth = f.Validation(
+            gt_x, gt_y, gt_phi, xcoordinates, ycoordinates)
 
         # Calculate the root mean square error (RMSE) and mean absolute error (MAE)
-        rmse = np.sqrt(np.mean((zstar - gt_phi)**2))
-        mae = np.mean(np.abs(zstar - gt_phi))
-        # Create a figure with two subplots
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+        rmse = np.sqrt(np.mean((Groundtruth - gt_phi)**2))
+        mae = np.mean(np.abs(Groundtruth - gt_phi))
 
         red = mcolors.colorConverter.to_rgb('#FF0000')
         green = mcolors.colorConverter.to_rgb('#00FF00')
         cmap = mcolors.LinearSegmentedColormap.from_list(
             'mycmap', [red, green], N=10)
 
-        # Plot the original data in the first subplot
-        ax1.scatter(gt_x, gt_y, c=gt_phi, cmap=cmap, s=50)
-        ax1.set_title('Ground Truth', fontsize=11)
-        ax1.invert_yaxis()  # invert the y-axis
+        # Create a figure with 4 subplots
 
-        # Plot the estimated data in the second subplot
-        ax2.scatter(xcoordinates, ycoordinates, c=zstar, cmap=cmap, s=50)
-        ax2.set_title('Estimated', fontsize=11)
-        ax2.invert_yaxis()  # invert the y-axis
+        fig, axs = plt.subplots(2, 2)
+        axs[0, 0].scatter(xcoordinates, ycoordinates,
+                          c=Groundtruth, cmap=cmap, s=50)
+        axs[0, 0].set_title('Ground Truth', fontsize=10)
+        axs[0, 0].invert_yaxis()
 
-        # Remove numerical labels on the x and y axis
-        ax1.set_xticklabels([])
-        ax1.set_yticklabels([])
-        ax2.set_xticklabels([])
-        ax2.set_yticklabels([])
+        axs[0, 1].scatter(xcoordinates, ycoordinates,
+                          c=Groundtruth, cmap=cmap, s=50)
+        axs[0, 1].set_title('Estimated 1', fontsize=10)
+        axs[0, 1].invert_yaxis()
+
+        axs[1, 0].scatter(xcoordinates, ycoordinates,
+                          c=Groundtruth, cmap=cmap, s=50)
+        axs[1, 0].set_title('Estimated 2', fontsize=10)
+        axs[1, 0].invert_yaxis()
+
+        axs[1, 1].scatter(xcoordinates, ycoordinates,
+                          c=Groundtruth, cmap=cmap, s=50)
+        axs[1, 1].set_title('Estimated 3', fontsize=10)
+        axs[1, 1].invert_yaxis()
+
+        # Hide x labels and tick labels for top plots and y ticks for right plots.
+        for ax in fig.get_axes():
+            ax.label_outer()
 
         # Add a colorbar to the second subplot
-        cbar = fig.colorbar(ax2.collections[0], ax=ax2)
+        cbar = fig.colorbar(axs[0, 0].collections[0], ax=axs[0, 0])
+        cbar = fig.colorbar(axs[0, 1].collections[0], ax=axs[0, 1])
+        cbar = fig.colorbar(axs[1, 0].collections[0], ax=axs[1, 0])
+        cbar = fig.colorbar(axs[1, 1].collections[0], ax=axs[1, 1])
+
         cbar.set_label('RSSI')
 
         # Show the root mean square error (RMSE) and mean absolute error (MAE) in the plot title
