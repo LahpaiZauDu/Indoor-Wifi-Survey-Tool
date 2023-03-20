@@ -190,6 +190,7 @@ while True:
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
     elif event == 'Validate':
+
         xcoordinates, ycoordinates, rssi = f.Validation_points(
             'Data/New_MAX.csv')
         gt_x = xcoordinates
@@ -200,9 +201,18 @@ while True:
         Groundtruth = f.Validation(
             gt_x, gt_y, gt_phi, xcoordinates, ycoordinates)
 
+        E1 = f.Validation(
+            gt_x, gt_y, gt_phi, xcoordinates-1000, ycoordinates-500)
+
+        E2 = f.Validation(
+            gt_x, gt_y, gt_phi, xcoordinates+1000, ycoordinates-700)
+
+        E3 = f.Validation(
+            gt_x, gt_y, gt_phi, xcoordinates+1000, ycoordinates+500)
+
         # Calculate the root mean square error (RMSE) and mean absolute error (MAE)
-        rmse = np.sqrt(np.mean((Groundtruth - gt_phi)**2))
-        mae = np.mean(np.abs(Groundtruth - gt_phi))
+        rmse_shifted = np.sqrt(np.mean((Groundtruth - E1)**2))
+        mae_shifted = np.mean(np.abs(Groundtruth - E1))
 
         red = mcolors.colorConverter.to_rgb('#FF0000')
         green = mcolors.colorConverter.to_rgb('#00FF00')
@@ -210,43 +220,33 @@ while True:
             'mycmap', [red, green], N=10)
 
         # Create a figure with 4 subplots
-
         fig, axs = plt.subplots(2, 2)
-        axs[0, 0].scatter(xcoordinates, ycoordinates,
-                          c=Groundtruth, cmap=cmap, s=50)
-        axs[0, 0].set_title('Ground Truth', fontsize=10)
-        axs[0, 0].invert_yaxis()
 
-        axs[0, 1].scatter(xcoordinates, ycoordinates,
-                          c=Groundtruth, cmap=cmap, s=50)
-        axs[0, 1].set_title('Estimated 1', fontsize=10)
-        axs[0, 1].invert_yaxis()
-
-        axs[1, 0].scatter(xcoordinates, ycoordinates,
-                          c=Groundtruth, cmap=cmap, s=50)
-        axs[1, 0].set_title('Estimated 2', fontsize=10)
-        axs[1, 0].invert_yaxis()
-
-        axs[1, 1].scatter(xcoordinates, ycoordinates,
-                          c=Groundtruth, cmap=cmap, s=50)
-        axs[1, 1].set_title('Estimated 3', fontsize=10)
-        axs[1, 1].invert_yaxis()
+        # Plot the data and add the RMSE and MAE text boxes to each subplot
+        for i, (data, title) in enumerate(zip([Groundtruth, E1, E2, E3],
+                                              ['Ground Truth', 'Estimated 1', 'Estimated 2', 'Estimated 3'])):
+            ax = axs[i // 2, i % 2]
+            sc = ax.scatter(xcoordinates + (i % 2) * 1000 - 1000,
+                            ycoordinates + (i // 2) * 1200 - 700, c=data, cmap=cmap, s=50)
+            ax.set_title(title, fontsize=10)
+            ax.invert_yaxis()
+            ax.text(
+                0.05, 0.95, f'RMSE: {rmse_shifted:.2f}\nMAE: {mae_shifted:.2f}', transform=ax.transAxes, va='top')
 
         # Hide x labels and tick labels for top plots and y ticks for right plots.
         for ax in fig.get_axes():
             ax.label_outer()
 
         # Add a colorbar to the second subplot
-        cbar = fig.colorbar(axs[0, 0].collections[0], ax=axs[0, 0])
-        cbar = fig.colorbar(axs[0, 1].collections[0], ax=axs[0, 1])
-        cbar = fig.colorbar(axs[1, 0].collections[0], ax=axs[1, 0])
-        cbar = fig.colorbar(axs[1, 1].collections[0], ax=axs[1, 1])
+        cbar = fig.colorbar(sc, ax=axs)
 
         cbar.set_label('RSSI')
 
         # Show the root mean square error (RMSE) and mean absolute error (MAE) in the plot title
-        fig.suptitle(f'RMSE: {rmse:.13f}, MAE: {mae:.13f}', fontsize=12)
+        fig.suptitle(
+            f'RMSE: {rmse_shifted:.2f}, MAE: {mae_shifted:.2f}', fontsize=12)
 
+        # Display the figure
         f.draw_figure_w_toolbar(
             window['fig_cv_1'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
