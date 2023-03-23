@@ -202,13 +202,13 @@ while True:
             gt_x, gt_y, gt_phi, xcoordinates, ycoordinates)
 
         E1 = f.Validation(
-            gt_x, gt_y, gt_phi, xcoordinates-1000, ycoordinates-500)
+            gt_x, gt_y, gt_phi, xcoordinates, ycoordinates-100)
 
         E2 = f.Validation(
-            gt_x, gt_y, gt_phi, xcoordinates+1000, ycoordinates-700)
+            gt_x, gt_y, gt_phi, xcoordinates, ycoordinates-200)
 
         E3 = f.Validation(
-            gt_x, gt_y, gt_phi, xcoordinates+1000, ycoordinates+500)
+            gt_x, gt_y, gt_phi, xcoordinates, ycoordinates-300)
 
         # Calculate the root mean square error (RMSE) and mean absolute error (MAE)
         rmse_shifted = np.sqrt(np.mean((Groundtruth - E1)**2))
@@ -230,8 +230,12 @@ while True:
             mae_shifted = np.mean(np.abs(Groundtruth - estimate))
 
             ax = axs[i // 2, i % 2]
-            sc = ax.scatter(xcoordinates + (i % 2) * 1000 - 1000,
-                            ycoordinates + (i // 2) * 1200 - 700, c=estimate, cmap=cmap, s=50)
+            ax.plot(np.arange(len(Groundtruth)),
+                    Groundtruth, label='Ground Truth')
+            ax.plot(np.arange(len(estimate)), estimate, label=title)
+            ax.set_title(title, fontsize=10)
+            ax.legend(loc='lower right', fontsize='small')
+
             ax.set_title(title, fontsize=10)
             ax.invert_yaxis()
             ax.text(
@@ -240,11 +244,6 @@ while True:
             # Hide x labels and tick labels for top plots and y ticks for right plots.
             for ax in fig.get_axes():
                 ax.label_outer()
-
-        # Add a colorbar to the second subplot
-        cbar = fig.colorbar(sc, ax=axs)
-
-        cbar.set_label('RSSI')
 
         # Display the figure
         f.draw_figure_w_toolbar(
