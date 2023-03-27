@@ -124,13 +124,12 @@ def plot_porosity_estimate(xco, yco, rss, image_size):
     OK.variogram_model_parameters
 
     # Calculate grid points based on image size
-    x_min, y_min, x_max, y_max = 0, 0, image_size[0], image_size[1]
+    x_min, y_min, x_max, y_max = 0, 0, image_size[1], image_size[1]
     x_range = x_max - x_min
     y_range = y_max - y_min
-    x_step = int(x_range / 25)
-    y_step = int(y_range / 25)
-    gridx = np.arange(x_min, x_max + x_step, x_step, dtype='float64')
-    gridy = np.arange(y_min, y_max + y_step, y_step, dtype='float64')
+    gridx = np.arange(x_min, x_max, x_range/40)
+    gridy = np.arange(y_min, y_max, y_range/40)
+
     zstar, ss = OK.execute("grid", gridx, gridy)
     return zstar
 
@@ -170,107 +169,6 @@ def process_data(csv_file):
 def get_all_max_bssid(csv_file):
     all_max_bssid, _, _, _, _ = process_data(csv_file)
     return all_max_bssid
-
-
-def all_average(csv_file):
-
-    # Load data from CSV
-    df = pd.read_csv(csv_file)
-
-    # Group data by X and Y coordinates, and apply the 'list' function to the RSSI column
-    df_grouped = df.groupby(['Xcoordinate', 'Ycoordinate'])[
-        'RSSI'].apply(list).reset_index()
-
-    # Replace -100 and NaN with None
-    df_grouped['RSSI'] = df_grouped['RSSI'].apply(
-        lambda x: [i if i != 0 and not pd.isna(i) else None for i in x])
-
-    # Convert RSSI lists into separate columns using the 'apply' function
-    df_expanded = df_grouped['RSSI'].apply(pd.Series)
-
-    # Combine the expanded DataFrame with the original X and Y coordinates
-    df_combined = pd.concat(
-        [df_grouped[['Xcoordinate', 'Ycoordinate']], df_expanded], axis=1)
-
-    # Replace empty or non-native values with -100 using the 'fillna' function
-    df_combined.fillna(value=0, inplace=True)
-    df_combined[df_combined == 'CHANNEL'] = 0
-    # drop the last row
-    df_combined = df_combined.drop(df_combined.index[-1])
-
-    # Write the updated data to a new CSV file
-    df_combined.to_csv('Data/floor55new.csv', index=False)
-
-    # Load the updated data from the CSV file
-    newdata = pd.read_csv('Data/floor550new.csv')
-
-    # Calculate the average RSSI for each row
-    newdata['RSSI'] = newdata.iloc[:, 2:].astype(float).mean(axis=1)
-
-    # Select only the 'Xcoordinate', 'Ycoordinate', and 'RSSI' columns
-    newaverage = newdata[['Xcoordinate', 'Ycoordinate', 'RSSI']]
-
-    xcoordinates = np.array(newaverage['Xcoordinate'])
-    ycoordinates = np.array(newaverage['Ycoordinate'])
-    rssi = np.array(newaverage['RSSI'])
-
-    return xcoordinates, ycoordinates, rssi
-
-
-def average(csv_file):
-
-    # Load data from CSV
-    df = pd.read_csv(csv_file)
-
-    # remove rows with missing values
-    df_remove = df.dropna()
-
-    # Filter the dataframe to only include rows where RSSI contains '-'
-    df_Filter = df_remove[df_remove['RSSI'].str.contains('-')]
-
-    # Group data by X and Y coordinates, and apply the 'list' function to the RSSI column
-    df_grouped = df_Filter.groupby(['Xcoordinate', 'Ycoordinate', 'BSSID'])[
-        'RSSI'].apply(list).reset_index()
-
-    # Calculate the average RSSI for each row
-    df_grouped['RSSI_mean'] = df_grouped['RSSI'].apply(
-        lambda x: np.mean([int(i) for i in x]))
-
-    # Create a new column for the access point MAC address by removing the last 3 octets of the BSSID
-    df_grouped['BSSID_Sumarize'] = df_grouped['BSSID'].apply(
-        lambda x: ':'.join(x.split(':')[:3]))
-
-    # Group by unique combination of ['Xcoordinate', 'Ycoordinate', 'BSSID_Sumarize'] and list the RSSI_mean values
-    df_grouped_all_mean = df_grouped.groupby(['Xcoordinate', 'Ycoordinate', 'BSSID_Sumarize'])[
-        'RSSI_mean'].apply(list).reset_index()
-
-    # Create a new column for the overall mean RSSI for each unique combination of ['Xcoordinate', 'Ycoordinate', 'BSSID_Sumarize']
-    df_grouped_all_mean['RSSI_all_mean'] = df_grouped_all_mean['RSSI_mean'].apply(
-        lambda x: np.max(x))
-
-    # Group by unique combination of ['Xcoordinate', 'Ycoordinate'] and list the unique RSSI_all_mean values
-    df_grouped_coord_mean = df_grouped_all_mean.groupby(
-        ['Xcoordinate', 'Ycoordinate'])['RSSI_all_mean'].unique().reset_index()
-
-    # Rename the 'RSSI_all_mean' column to 'Mean'
-    df_grouped_coord_mean = df_grouped_coord_mean.rename(
-        columns={'RSSI_all_mean': 'Mean'})
-
-    # Calculate the mean value from the lists of values in the 'Mean' column and put it in a new column called 'NewMean'
-    df_grouped_coord_mean['NewMean'] = df_grouped_coord_mean['Mean'].apply(
-        lambda x: np.mean(x))
-
-    # Write the updated data to a new CSV file
-    df_grouped_coord_mean.to_csv('Data/18_floor5.csv', index=False)
-
-    # Load the updated data from the CSV file
-    newdata = pd.read_csv('Data/18_floor5.csv')
-
-    xcoordinates = np.array(newdata['Xcoordinate'])
-    ycoordinates = np.array(newdata['Ycoordinate'])
-    rssi = np.array(newdata['NewMean'])
-
-    return xcoordinates, ycoordinates, rssi
 
 
 def new_average(csv_file):
@@ -341,18 +239,24 @@ def Validation(xco, yco, rss, xcoords, ycoords):
     x = xco
     y = yco
     phi = rss
+
+    print('Original')
+    print(phi)
     OK = OrdinaryKriging(
         x,
         y,
         phi,
         verbose=True,
         enable_plotting=False,
-        nlags=3,
+        nlags=100,
         variogram_model="spherical",
     )
 
     # Call execute with the ground truth coordinates to get the estimated porosity values at those locations
     zsstar, ss = OK.execute("points", xcoords, ycoords)
+
+    print('Estimated')
+    print(zsstar)
 
     return zsstar
 

@@ -6,6 +6,7 @@ from mpl_point_clicker import clicker
 import cv2
 import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 import seaborn as sns
 import numpy as np
 import csv
@@ -152,6 +153,7 @@ while True:
         xco = xcoordinates
         yco = ycoordinates
         rv = rssi
+
         # Call plot_porosity_estimate and get the heat map data, pass 'import_size' instead of 'image_size'
         zstar = f.plot_porosity_estimate(xco, yco, rv, import_size)
 
@@ -173,7 +175,7 @@ while True:
 
         # Add the scatter plot of the x and y coordinates here
         cax = plt.scatter(xco, yco, s=5, c='black')
-        vmin, vmax = -40, -100
+        # vmin, vmax = -40, -100
         heatmap = ax.imshow(zstar, alpha=0.8, cmap=cmap, interpolation='sinc',
                             extent=[0, import_size[1], import_size[0], 0])
 
@@ -190,67 +192,66 @@ while True:
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
     elif event == 'Validate':
-
         xcoordinates, ycoordinates, rssi = f.Validation_points(
             'Data/New_MAX.csv')
-        gt_x = xcoordinates
-        gt_y = ycoordinates
-        gt_phi = rssi
+        x = xcoordinates
+        y = ycoordinates
+        phi = rssi
 
-        # Call plot_porosity_estimate and get the heat map data,
-        Groundtruth = f.Validation(
-            gt_x, gt_y, gt_phi, xcoordinates, ycoordinates)
+        # Call Validation function to get the estimated phi values at the validation points
+        zsstar = f.Validation(x, y, phi, xcoordinates, ycoordinates)
 
-        E1 = f.Validation(
-            gt_x, gt_y, gt_phi, xcoordinates, ycoordinates-100)
+        # Calculate the mean absolute error (MAE) and root mean square error (RMSE) between phi and zsstar
+        mae = mean_absolute_error(phi, zsstar)
+        rmse = np.sqrt(mean_squared_error(phi, zsstar))
 
-        E2 = f.Validation(
-            gt_x, gt_y, gt_phi, xcoordinates, ycoordinates-200)
+        # Randomly select 5 coordinates to display the phi values
+        random_idx = np.random.choice(len(xcoordinates), size=5, replace=False)
+        random_x = xcoordinates[random_idx]
+        random_y = ycoordinates[random_idx]
+        random_phi = phi[random_idx]
+        # Round to 2 decimal places
+        random_zsstar = np.round(zsstar[random_idx], decimals=14)
 
-        E3 = f.Validation(
-            gt_x, gt_y, gt_phi, xcoordinates, ycoordinates-300)
+        # Create the colormap for the plot
+        cmap = sns.color_palette("gray", as_cmap=True)
+        cmap_red = sns.color_palette(["red"])
 
-        # Calculate the root mean square error (RMSE) and mean absolute error (MAE)
-        rmse_shifted = np.sqrt(np.mean((Groundtruth - E1)**2))
-        mae_shifted = np.mean(np.abs(Groundtruth - E1))
+        # Plot the original phi values and estimated phi values at the validation points
+        fig, axs = plt.subplots(1, 2, figsize=(6, 3))
+        sns.scatterplot(x=xcoordinates, y=ycoordinates,
+                        hue=None, palette=cmap, ax=axs[0])
+        axs[0].scatter(random_x, random_y, color=cmap_red,
+                       s=60, edgecolor='black', linewidths=1)
+        axs[0].set_title('Original Phi Values')
+        axs[0].set_xticks([])
+        axs[0].set_yticks([])
+        axs[0].invert_yaxis()
+        for i, txt in enumerate(random_phi):
+            axs[0].annotate(txt, (random_x[i], random_y[i]))
 
-        red = mcolors.colorConverter.to_rgb('#FF0000')
-        green = mcolors.colorConverter.to_rgb('#00FF00')
-        cmap = mcolors.LinearSegmentedColormap.from_list(
-            'mycmap', [red, green], N=10)
+        sns.scatterplot(x=xcoordinates, y=ycoordinates,
+                        hue=None, palette=cmap, ax=axs[1])
+        axs[1].scatter(random_x, random_y, color=cmap_red,
+                       s=60, edgecolor='black', linewidths=1)
+        axs[1].set_title('Estimated Phi Values')
+        axs[1].set_xticks([])
+        axs[1].set_yticks([])
+        axs[1].invert_yaxis()
+        for i, txt in enumerate(random_zsstar):
+            axs[1].annotate('{:.14f}'.format(txt), (random_x[i], random_y[i]))
 
-        # Create a figure with 4 subplots
-        fig, axs = plt.subplots(2, 2)
-
-        # Plot the data and add the RMSE and MAE text boxes to each subplot
-        for i, (estimate, title) in enumerate(zip([Groundtruth, E1, E2, E3],
-                                                  ['Ground Truth', 'Estimated 1', 'Estimated 2', 'Estimated 3'])):
-            # Calculate the root mean square error (RMSE) and mean absolute error (MAE)
-            rmse_shifted = np.sqrt(np.mean((Groundtruth - estimate)**2))
-            mae_shifted = np.mean(np.abs(Groundtruth - estimate))
-
-            ax = axs[i // 2, i % 2]
-            ax.plot(np.arange(len(Groundtruth)),
-                    Groundtruth, label='Ground Truth')
-            ax.plot(np.arange(len(estimate)), estimate, label=title)
-            ax.set_title(title, fontsize=10)
-            ax.legend(loc='lower right', fontsize='small')
-
-            ax.set_title(title, fontsize=10)
-            ax.invert_yaxis()
-            ax.text(
-                0.05, 0.95, f'RMSE: {rmse_shifted:.2f}\nMAE: {mae_shifted:.2f}', transform=ax.transAxes, va='top')
-
-            # Hide x labels and tick labels for top plots and y ticks for right plots.
-            for ax in fig.get_axes():
-                ax.label_outer()
+        plt.tight_layout()
+        # move the bottom up to make space for the title
+        fig.subplots_adjust(bottom=0.2)
 
         # Display the figure
         f.draw_figure_w_toolbar(
             window['fig_cv_1'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
         # Show the root mean square error (RMSE) and mean absolute error (MAE) in the plot title
-        fig.suptitle(f'', fontsize=12)
+        fig.text(0.5, 0.05, 'RMSE: {:.14f}, MAE: {:.14f}'.format(
+            rmse, mae), ha='center', fontsize=10)
 
 
 window.close()
