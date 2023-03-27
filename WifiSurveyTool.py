@@ -223,7 +223,7 @@ while True:
                         hue=None, palette=cmap, ax=axs[0])
         axs[0].scatter(random_x, random_y, color=cmap_red,
                        s=60, edgecolor='black', linewidths=1)
-        axs[0].set_title('Original Phi Values')
+        axs[0].set_title('Original RSSI Values')
         axs[0].set_xticks([])
         axs[0].set_yticks([])
         axs[0].invert_yaxis()
@@ -234,7 +234,7 @@ while True:
                         hue=None, palette=cmap, ax=axs[1])
         axs[1].scatter(random_x, random_y, color=cmap_red,
                        s=60, edgecolor='black', linewidths=1)
-        axs[1].set_title('Estimated Phi Values')
+        axs[1].set_title('Estimated RSSI Values')
         axs[1].set_xticks([])
         axs[1].set_yticks([])
         axs[1].invert_yaxis()
