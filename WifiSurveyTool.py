@@ -10,7 +10,8 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 import seaborn as sns
 import numpy as np
 import csv
-
+from pykrige.ok import OrdinaryKriging
+import numpy as np
 
 # Table field names
 fields = ['SSID', 'BSSID', 'RSSI', 'CHANNEL', 'HT', 'CC', 'SECURITY']
@@ -192,54 +193,92 @@ while True:
             window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
     elif event == 'Validate':
+
+        xcoordinates, ycoordinates, rssi = f.Random_Validation_points(
+            'Data/New_MAX.csv')
+        x_points = xcoordinates
+        y_points = ycoordinates
+        phi_values = rssi
+
         xcoordinates, ycoordinates, rssi = f.Validation_points(
             'Data/New_MAX.csv')
-        x = xcoordinates
-        y = ycoordinates
-        phi = rssi
+        o_x = xcoordinates
+        o_y = ycoordinates
+        o_p = rssi
 
-        # Call Validation function to get the estimated phi values at the validation points
-        zsstar = f.Validation(x, y, phi, xcoordinates, ycoordinates)
+        # Calculate the start and stop values
+        x_start_val = np.min(x_points) - 1
+        x_stop_val = np.max(x_points) + 1
 
-        # Calculate the mean absolute error (MAE) and root mean square error (RMSE) between phi and zsstar
-        mae = mean_absolute_error(phi, zsstar)
-        rmse = np.sqrt(mean_squared_error(phi, zsstar))
+        y_start_val = np.min(y_points) - 1
+        y_stop_val = np.max(y_points) + 1
 
-        # Randomly select 5 coordinates to display the phi values
-        random_idx = np.random.choice(len(xcoordinates), size=5, replace=False)
-        random_x = xcoordinates[random_idx]
-        random_y = ycoordinates[random_idx]
-        random_phi = phi[random_idx]
-        # Round to 2 decimal places
-        random_zsstar = np.round(zsstar[random_idx], decimals=14)
+        p_start_val = np.min(phi_values) - 1
+        p_stop_val = np.max(phi_values) + 1
+
+        # Define the coordinates where you want to estimate the phi values
+        x_est = np.linspace(x_start_val, x_stop_val, 3)
+        y_est = np.linspace(y_start_val, y_stop_val, 3)
+        xx, yy = np.meshgrid(x_est, y_est)
+        x_coords = xx.flatten()
+        y_coords = yy.flatten()
+
+        # Perform ordinary kriging to estimate the phi values at the specified coordinates
+        ok = OrdinaryKriging(x_points, y_points, phi_values,
+                             variogram_model='spherical', verbose=False, enable_plotting=False)
+        z, ss = ok.execute('grid', x_est, y_est)
+
+        # Calculate the MAE and RMSE
+        mae = mean_absolute_error(phi_values, z.flatten())
+        rmse = np.sqrt(mean_squared_error(phi_values, z.flatten()))
+
+        # Print the MAE and RMSE
+        print("MAE: ", mae)
+        print("RMSE: ", rmse)
 
         # Create the colormap for the plot
-        cmap = sns.color_palette("gray", as_cmap=True)
+        cmap = sns.color_palette(["blue"])
         cmap_red = sns.color_palette(["red"])
 
-        # Plot the original phi values and estimated phi values at the validation points
-        fig, axs = plt.subplots(1, 2, figsize=(6, 3))
-        sns.scatterplot(x=xcoordinates, y=ycoordinates,
-                        hue=None, palette=cmap, ax=axs[0])
-        axs[0].scatter(random_x, random_y, color=cmap_red,
-                       s=60, edgecolor='black', linewidths=1)
-        axs[0].set_title('Original RSSI Values')
+        # Create figure and axes objects
+        fig, axs = plt.subplots(ncols=2, figsize=(6, 3))
+
+        # Plot the original coordinates and their corresponding phi_values
+        sns.scatterplot(x=x_points, y=y_points, hue=phi_values,
+                        ax=axs[0], palette=cmap, legend=False)
+        sns.scatterplot(x=o_x, y=o_y, color='gray', alpha=0.2,
+                        ax=axs[0], legend=False)
+        axs[0].set_title("Original RSSI ")
+        axs[0].invert_yaxis()
+
+        for i, txt in enumerate(phi_values):
+            axs[0].annotate(round(txt, 2), (x_points[i],
+                            y_points[i]), ha='center', va='top')
+
+        # Remove x and y axis labels and tick labels
         axs[0].set_xticks([])
         axs[0].set_yticks([])
-        axs[0].invert_yaxis()
-        for i, txt in enumerate(random_phi):
-            axs[0].annotate(txt, (random_x[i], random_y[i]))
+        axs[0].set_xlabel('')
+        axs[0].set_ylabel('')
 
-        sns.scatterplot(x=xcoordinates, y=ycoordinates,
-                        hue=None, palette=cmap, ax=axs[1])
-        axs[1].scatter(random_x, random_y, color=cmap_red,
-                       s=60, edgecolor='black', linewidths=1)
-        axs[1].set_title('Estimated RSSI Values')
+        # Plot the original coordinates and their estimated phi_values from z
+        sns.scatterplot(x=x_points, y=y_points,
+                        hue=z.flatten(), ax=axs[1], palette=cmap_red, legend=False)
+        sns.scatterplot(x=o_x, y=o_y, color='gray', alpha=0.2,
+                        ax=axs[1], legend=False)
+
+        axs[1].set_title("Estimated RSSI")
+        axs[1].invert_yaxis()
+
+        for i, txt in enumerate(z.flatten()):
+            axs[1].annotate(round(txt, 2), (x_points[i],
+                            y_points[i]), ha='center', va='top')
+
+        # Remove x and y axis labels and tick labels
         axs[1].set_xticks([])
         axs[1].set_yticks([])
-        axs[1].invert_yaxis()
-        for i, txt in enumerate(random_zsstar):
-            axs[1].annotate('{:.14f}'.format(txt), (random_x[i], random_y[i]))
+        axs[1].set_xlabel('')
+        axs[1].set_ylabel('')
 
         plt.tight_layout()
         # move the bottom up to make space for the title
@@ -250,7 +289,7 @@ while True:
             window['fig_cv_1'].TKCanvas, fig, window['controls_cv'].TKCanvas)
 
         # Show the root mean square error (RMSE) and mean absolute error (MAE) in the plot title
-        fig.text(0.5, 0.05, 'RMSE: {:.14f}, MAE: {:.14f}'.format(
+        fig.text(0.5, 0.05, 'RMSE: {:.4f}, MAE: {:.4f}'.format(
             rmse, mae), ha='center', fontsize=10)
 
 

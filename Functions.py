@@ -255,9 +255,6 @@ def Validation(xco, yco, rss, xcoords, ycoords):
     # Call execute with the ground truth coordinates to get the estimated porosity values at those locations
     zsstar, ss = OK.execute("points", xcoords, ycoords)
 
-    print('Estimated')
-    print(zsstar)
-
     return zsstar
 
 
@@ -268,5 +265,20 @@ def Validation_points(csv_file):
     xcoordinates = np.array(df['Xcoordinate'])
     ycoordinates = np.array(df['Ycoordinate'])
     rssi = np.array(df['Max_lists'])
+
+    return xcoordinates, ycoordinates, rssi
+
+
+def Random_Validation_points(csv_file):
+
+    # Load data from CSV
+    df = pd.read_csv(csv_file)
+    # drop any duplicate rows
+    df = df.drop_duplicates()
+    # randomly select 5 rows
+    result = df.sample(n=9, random_state=np.random.randint(100))
+    xcoordinates = np.array(result['Xcoordinate'])
+    ycoordinates = np.array(result['Ycoordinate'])
+    rssi = np.array(result['Max_lists'])
 
     return xcoordinates, ycoordinates, rssi
