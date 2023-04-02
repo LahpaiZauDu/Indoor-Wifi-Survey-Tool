@@ -232,10 +232,6 @@ while True:
         mae = mean_absolute_error(phi_values, z.flatten())
         rmse = np.sqrt(mean_squared_error(phi_values, z.flatten()))
 
-        # Print the MAE and RMSE
-        print("MAE: ", mae)
-        print("RMSE: ", rmse)
-
         # Create the colormap for the plot
         cmap = sns.color_palette(["blue"])
         cmap_red = sns.color_palette(["red"])
