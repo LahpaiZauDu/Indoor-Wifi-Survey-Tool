@@ -31,13 +31,3 @@ To use this project, follow these steps:
 
 [The tool is not 100% complete and it only work on Mac operation]
 
-Contributing
-
-[Lahpai_zaudu@cmu.ac.th to report bugs or suggest improvements]
-
-License
-[Chiang Mai University ]
-
-Contact
-
-[Lahpai_zaudu@cmu.ac.th]
