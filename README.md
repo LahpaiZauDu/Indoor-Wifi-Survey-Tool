@@ -29,5 +29,5 @@ To use this project, follow these steps:
     Press Heatmap button to generate heatmap of collected data.
     Press Validate button in Validation Tab to generate accuracy testing plot.
 
-[The tool is not 100% complete and it only work on Mac operation]
+[The tool is not yet fully complete and currently supports only macOS.]
 
